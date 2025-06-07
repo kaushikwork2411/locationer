@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Location Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            margin: auto;
+            width: 400px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        #output {
+            margin-top: 20px;
+            text-align: left;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #007BFF;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Get Your Location</h2>
+        <button onclick="getLocation()">Get Location</button>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        function getLocation() {
+            const output = document.getElementById('output');
+            output.innerHTML = "Requesting location...";
+            
+            if (!navigator.geolocation) {
+                output.innerHTML = "<p class='error'>Geolocation is not supported by your browser.</p>";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                success => {
+                    const lat = success.coords.latitude;
+                    const lng = success.coords.longitude;
+                    output.innerHTML = `<p><strong>Latitude:</strong> ${lat}</p><p><strong>Longitude:</strong> ${lng}</p>`;
+
+                    const apiKey = 'AIzaSyDP2j3fPCMJIffeOw44wXt_MwJjn1eNk4w';
+                    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+                    fetch(url)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'OK') {
+                                const address = data.results[0].formatted_address;
+                                output.innerHTML += `<p><strong>Address:</strong> ${address}</p>`;
+                            } else {
+                                output.innerHTML += `<p class="error">Unable to get address. Status: ${data.status}</p>`;
+                            }
+                        })
+                        .catch(err => {
+                            output.innerHTML += `<p class="error">Error fetching address: ${err.message}</p>`;
+                        });
+                },
+                error => {
+                    output.innerHTML = `<p class="error">Location access denied or failed. (${error.message})</p>`;
+                }
+            );
+        }
+    </script>
+</body>
+</html>
